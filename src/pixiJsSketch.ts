@@ -1,6 +1,7 @@
 import { BulgePinchFilter } from "@pixi/filter-bulge-pinch";
 import * as PIXI from "pixi.js";
 import { fitCover, loadImages } from "./utility";
+import gsap from "gsap";
 
 interface ISketch {
   wrapper: HTMLElement;
@@ -103,7 +104,8 @@ export default class Sketch implements ISketch {
       slug: string;
       imageUrl: string;
     }[],
-    handleImageClick: (slug: string) => void
+    handleImageClick: (slug: string) => void,
+    onLoad?: () => void
   ) {
     this.wrapper = wrapper;
     this.onImageClick = handleImageClick;
@@ -113,7 +115,6 @@ export default class Sketch implements ISketch {
       width: window.innerWidth,
       backgroundColor: 0x000000,
     });
-    wrapper.appendChild(this.app.view);
 
     const dimenstion = this._getImageDimensions();
 
@@ -157,6 +158,9 @@ export default class Sketch implements ISketch {
       document.addEventListener("wheel", this._scroll);
       document.addEventListener("touchmove", this._drag);
       document.addEventListener("mousemove", this._drag);
+
+      wrapper.appendChild(this.app.view);
+      if (onLoad) onLoad();
     });
 
     return this;
@@ -221,9 +225,16 @@ export default class Sketch implements ISketch {
         if (this.bulgeFilter.strength < 0.2) {
           this.bulgeFilter.strength += 0.025;
         }
+
+        if (!this.wrapper.classList.contains("insetShadow"))
+          this.wrapper.classList.add("insetShadow");
       } else {
         if (this.bulgeFilter.strength > 0) {
           this.bulgeFilter.strength -= 0.025;
+        }
+
+        if (this.wrapper.classList.contains("insetShadow")) {
+          this.wrapper.classList.remove("insetShadow");
         }
       }
 
@@ -261,11 +272,16 @@ export default class Sketch implements ISketch {
         //   thumb.position.y -= this.scroll.deltaY;
         // });
 
-        this.container.position.x -= this.scroll.deltaX;
-        this.container.position.y -= this.scroll.deltaY;
+        for (let i = 0; i < this.thumbs.length; i++) {
+          const { x, y } = this._calcPos(this.scroll, this.thumbs[i].position);
+          this.thumbs[i].position.set(x, y);
+        }
+
+        // this.container.position.x -= this.scroll.deltaX;
+        // this.container.position.y -= this.scroll.deltaY;
 
         // detecting boundry
-        this._detectBoundry();
+        // this._detectBoundry();
       }
     });
   }
@@ -401,26 +417,35 @@ export default class Sketch implements ISketch {
     this.scroll.deltaY = -deltaY / 7;
   };
 
-  calcPos(
-    deltaX: number,
-    deltaY: number,
-    positionX: number,
-    positionY: number
+  _calcPos(
+    scroll: {
+      deltaX: number;
+      deltaY: number;
+    },
+    pos: {
+      x: number;
+      y: number;
+    }
   ) {
-    const finalX =
-      ((positionX + deltaX + this.WHOLE_WIDTH.x + this.width + this.margin) %
+    let newPosX =
+      ((pos.x - scroll.deltaX + this.WHOLE_WIDTH.x + this.width + this.margin) %
         this.WHOLE_WIDTH.x) -
       this.width -
       this.margin;
-    const finalY =
-      ((positionY + deltaY + this.WHOLE_WIDTH.y + this.height + this.margin) %
+
+    let newPosY =
+      ((pos.y -
+        scroll.deltaY +
+        this.WHOLE_WIDTH.y +
+        this.height +
+        this.margin) %
         this.WHOLE_WIDTH.y) -
       this.height -
       this.margin;
 
     return {
-      x: finalX,
-      y: finalY,
+      x: newPosX,
+      y: newPosY,
     };
   }
 
@@ -457,6 +482,26 @@ export default class Sketch implements ISketch {
     };
   }
 
+  _imageMouseOver(e: any) {
+    if (this.isBulging || this.isDragging) return;
+
+    let el = e.currentTarget.children[0].children[0];
+    gsap.to(el.scale, {
+      duration: 0.5,
+      x: 1.1,
+      y: 1.1,
+    });
+  }
+  _imageMouseOut(e: any) {
+    if (this.isBulging || this.isDragging) return;
+    let el = e.currentTarget.children[0].children[0];
+    gsap.to(el.scale, {
+      duration: 0.5,
+      x: 1,
+      y: 1,
+    });
+  }
+
   destroy() {
     document.removeEventListener("touchstart", this._startDrag);
     document.removeEventListener("touchend", this._endDrag);
@@ -465,5 +510,6 @@ export default class Sketch implements ISketch {
     document.removeEventListener("wheel", this._scroll);
     document.removeEventListener("mousemove", this._drag);
     document.removeEventListener("touchmove", this._drag);
+    this.app.destroy(true);
   }
 }

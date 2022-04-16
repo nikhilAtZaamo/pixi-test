@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@pixi/filter-bulge-pinch": "^4.1.5",
+    "gsap": "^3.10.3",
     "pixi.js": "^6.3.0"
   }
 }
