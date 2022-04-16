@@ -1,0 +1,18 @@
+{
+  "name": "pixi-test",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "vite": "^2.9.2"
+  },
+  "dependencies": {
+    "@pixi/filter-bulge-pinch": "^4.1.5",
+    "pixi.js": "^6.3.0"
+  }
+}
