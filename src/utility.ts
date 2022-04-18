@@ -4,6 +4,7 @@ export const loadImages = (
     id: string;
     slug: string;
     imageUrl: string;
+    name: string;
   }[],
   callback: (imgs: HTMLImageElement[]) => void
 ) => {
@@ -12,6 +13,7 @@ export const loadImages = (
     const img = new Image();
     img.dataset.id = path.id;
     img.dataset.slug = path.slug;
+    img.dataset.name = path.name;
     img.onload = () => {
       imgs.push(img);
       if (imgs.length === imageData.length) {

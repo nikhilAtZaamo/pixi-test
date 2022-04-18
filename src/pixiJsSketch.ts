@@ -9,6 +9,7 @@ interface ISketch {
     id: string;
     slug: string;
     imageUrl: string;
+    name: string;
   }[];
   numRows: number;
   numCols: number;
@@ -56,6 +57,7 @@ export default class Sketch implements ISketch {
     id: string;
     slug: string;
     imageUrl: string;
+    name: string;
   }[];
   numRows: number;
   numCols: number;
@@ -103,6 +105,7 @@ export default class Sketch implements ISketch {
       id: string;
       slug: string;
       imageUrl: string;
+      name: string;
     }[],
     handleImageClick: (slug: string) => void,
     onLoad?: () => void
@@ -183,6 +186,27 @@ export default class Sketch implements ISketch {
       mask.height = this.height;
       sprite.mask = mask;
 
+      const text =
+        img.dataset.name!.length < 17
+          ? img.dataset.name!
+          : img.dataset.name!.slice(0, 17) + "...";
+
+      // display name of the image at the bottom
+      const name = new PIXI.Text(text, {
+        fontFamily: "Roboto",
+        fontSize: this.margin * 0.5,
+        fill: 0xffffff,
+        align: "center",
+        dropShadow: true,
+        dropShadowColor: 0x000000,
+        dropShadowBlur: 2,
+        dropShadowAlpha: 0.8,
+        dropShadowDistance: 5,
+      });
+      name.anchor.set(0.5);
+      name.x = this.width / 2;
+      name.y = this.height - this.margin * 0.5;
+
       sprite.anchor.set(0.5);
 
       sprite.position.set(
@@ -204,8 +228,10 @@ export default class Sketch implements ISketch {
       container.y = (this.height + this.margin) * Math.floor(i / this.numCols);
 
       spriteContainer.addChild(sprite);
+
       container.addChild(spriteContainer);
       container.addChild(mask);
+      container.addChild(name);
 
       this.container.addChild(container);
       this.thumbs.push(container);
@@ -213,7 +239,7 @@ export default class Sketch implements ISketch {
       spriteContainer.interactive = true;
       spriteContainer.buttonMode = true;
       spriteContainer.on("pointerdown", () => {
-        this.lastClickedSlug = this.images[i].slug;
+        this.lastClickedSlug = img.dataset.slug!;
       });
     });
   }
@@ -413,8 +439,8 @@ export default class Sketch implements ISketch {
     const deltaX = this.pointerEndPosition.x - this.pointerInitialPosition.x;
     const deltaY = this.pointerEndPosition.y - this.pointerInitialPosition.y;
 
-    this.scroll.deltaX = -deltaX / 7;
-    this.scroll.deltaY = -deltaY / 7;
+    this.scroll.deltaX = -deltaX / 1.7;
+    this.scroll.deltaY = -deltaY / 1.7;
   };
 
   _calcPos(
